@@ -17,6 +17,7 @@
         .btn-guardar { background: #9C27B0; color: white; }
         .btn-danger { background: #e91e63; color: white; }
         .brand-title { color: #9C27B0; font-weight: bold; }
+        .console-log { background: #2c2c2c; color: #00ff00; padding: 10px; border-radius: 5px; font-family: monospace; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -25,7 +26,7 @@
 <div id="auth-section" class="form-container">
     <h3 class="text-center mb-4 brand-title">🔐 Acceso Profesional - OBSTNUT</h3>
     <input type="email" id="email" class="form-control mb-3" placeholder="Tu email profesional" required>
-    <input type="password" id="password" class="form-control mb-3" placeholder="Contraseña" required>
+    <input type="password" id="password" class="form-control mb-3" placeholder="Contraseña (mínimo 6 caracteres)" required>
     <button onclick="login()" class="btn btn-primary w-100 mb-2">Ingresar</button>
     <button onclick="register()" class="btn btn-outline-secondary w-100">Crear Cuenta (solo tú)</button>
     <div id="auth-message" class="mt-3 text-center text-danger"></div>
@@ -103,16 +104,16 @@
 </div>
 
 <script>
-    // 👇👇👇 REEMPLAZA ESTO POR TU CONFIGURACIÓN DE FIREBASE 👇👇👇
+    // ⚠️ ⚠️ ⚠️ PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE ⚠️ ⚠️ ⚠️
+    // Ve a Firebase Console > Project Settings > Tú app web > Copia el objeto firebaseConfig
     const firebaseConfig = {
-        apiKey: "TU_API_KEY",
+        apiKey: "PEGAAQUI-TU-API-KEY",
         authDomain: "obstnut-app.firebaseapp.com",
         projectId: "obstnut-app",
         storageBucket: "obstnut-app.appspot.com",
-        messagingSenderId: "TU_ID",
-        appId: "TU_APP_ID"
+        messagingSenderId: "PEGAAQUI-TU-ID",
+        appId: "PEGAAQUI-TU-APP-ID"
     };
-    // 👆👆👆 REEMPLAZA ESTO POR TU CONFIGURACIÓN DE FIREBASE 👆👆👆
 
     // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
@@ -130,28 +131,26 @@
         cargarPacientes();
     }
 
-    // Registro de profesional
     function register() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
-        if (!email || !password) {
-            showMessage("⚠️ Email y contraseña son obligatorios.");
+        if (!email || !password || password.length < 6) {
+            showMessage("⚠️ Email y contraseña (mín. 6 caracteres) son obligatorios.");
             return;
         }
 
         auth.createUserWithEmailAndPassword(email, password)
-            .then((userCredential) => {
+            .then(() => {
                 showMessage("✅ ¡Cuenta creada! Bienvenida a OBSTNUT.");
                 showApp();
             })
-            .catch((error) => {
+            .catch(error => {
                 console.error("Error registro:", error);
                 showMessage("❌ Error: " + error.message);
             });
     }
 
-    // Login
     function login() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
@@ -162,11 +161,11 @@
         }
 
         auth.signInWithEmailAndPassword(email, password)
-            .then((userCredential) => {
+            .then(() => {
                 showMessage("✅ ¡Bienvenida a OBSTNUT!");
                 showApp();
             })
-            .catch((error) => {
+            .catch(error => {
                 console.error("Error login:", error);
                 showMessage("❌ Error: " + error.message);
             });
@@ -198,7 +197,7 @@
                 cargarPacientes();
                 limpiarFormularioPaciente();
             })
-            .catch((error) => {
+            .catch(error => {
                 console.error("Error guardando paciente:", error);
                 showMessage("❌ Error al registrar paciente.");
             });
@@ -221,13 +220,11 @@
                     const data = doc.data();
                     const id = doc.id;
 
-                    // Opción para select
                     const option = document.createElement('option');
                     option.value = id;
                     option.textContent = data.nombre;
                     listaSelect.appendChild(option);
 
-                    // Tarjeta en lista
                     const card = document.createElement('div');
                     card.className = 'card card-paciente p-3';
                     card.innerHTML = `
@@ -267,7 +264,7 @@
                 showMessage("✅ Historia clínica guardada en OBSTNUT.");
                 limpiarFormularioHistoria();
             })
-            .catch((error) => {
+            .catch(error => {
                 console.error("Error guardando historia:", error);
                 showMessage("❌ Error al guardar historia clínica.");
             });
@@ -352,7 +349,6 @@
         setTimeout(() => div.innerText = '', 6000);
     }
 
-    // Verificar si ya hay usuario logueado
     auth.onAuthStateChanged(user => {
         if (user) {
             showApp();
@@ -361,7 +357,6 @@
         }
     });
 
-    // Mostrar login al cargar
     showAuth();
 </script>
 
