@@ -149,7 +149,7 @@
         const password = document.getElementById('password').value;
         auth.signInWithEmailAndPassword(email, password)
             .then(() => {
-                showMessage("✅ Bienvenida a ObsNut, Dra. Naluís.");
+                showMessage("✅ Bienvenida a ObsNut, Dr.");
                 showApp();
             })
             .catch(error => showMessage("Error: " + error.message));
