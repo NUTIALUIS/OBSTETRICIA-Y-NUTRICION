@@ -17,7 +17,7 @@
         .btn-guardar { background: #9C27B0; color: white; }
         .btn-danger { background: #e91e63; color: white; }
         .brand-title { color: #9C27B0; font-weight: bold; }
-        .console-log { background: #2c2c2c; color: #00ff00; padding: 10px; border-radius: 5px; font-family: monospace; margin-top: 10px; }
+        .console-log { background: #2c2c2c; color: #00ff00; padding: 10px; border-radius: 5px; font-family: monospace; margin-top: 10px; white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -30,82 +30,17 @@
     <button onclick="login()" class="btn btn-primary w-100 mb-2">Ingresar</button>
     <button onclick="register()" class="btn btn-outline-secondary w-100">Crear Cuenta (solo tú)</button>
     <div id="auth-message" class="mt-3 text-center text-danger"></div>
+    <div id="debug-console" class="console-log">[Consola de depuración - OBSTNUT]</div>
 </div>
 
 <!-- Panel Principal -->
 <div id="main-app" class="hidden">
     <button onclick="logout()" class="btn btn-outline-danger logout-btn">Cerrar Sesión</button>
-
-    <!-- Registrar Paciente -->
-    <div class="form-container">
-        <h4 class="brand-title">➕ Registrar Nuevo Paciente - OBSTNUT</h4>
-        <div class="row">
-            <div class="col-md-6">
-                <input type="text" id="nombrePaciente" class="form-control mb-2" placeholder="Nombre completo" required>
-            </div>
-            <div class="col-md-6">
-                <input type="tel" id="telefonoPaciente" class="form-control mb-2" placeholder="Teléfono / WhatsApp" required>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <select id="tipoConsulta" class="form-control mb-2">
-                    <option value="">Especialidad</option>
-                    <option value="Nutrición">Nutrición</option>
-                    <option value="Obstetricia">Obstetricia</option>
-                </select>
-            </div>
-            <div class="col-md-6">
-                <input type="date" id="fechaNacimiento" class="form-control mb-2" placeholder="Fecha de nacimiento">
-            </div>
-        </div>
-        <button onclick="registrarPaciente()" class="btn btn-guardar w-100">✅ Registrar Paciente</button>
-    </div>
-
-    <!-- Atender Paciente -->
-    <div class="form-container">
-        <h4 class="brand-title">📋 Atender Paciente - OBSTNUT</h4>
-        <select id="listaPacientesAtencion" class="form-control mb-3">
-            <option value="">Selecciona un paciente</option>
-        </select>
-
-        <h5>Signos Vitales</h5>
-        <div class="row">
-            <div class="col-md-3">
-                <input type="number" id="peso" class="form-control mb-2" placeholder="Peso (kg)">
-            </div>
-            <div class="col-md-3">
-                <input type="number" id="talla" class="form-control mb-2" placeholder="Talla (cm)">
-            </div>
-            <div class="col-md-3">
-                <input type="text" id="pa" class="form-control mb-2" placeholder="PA (ej: 120/80)">
-            </div>
-            <div class="col-md-3">
-                <input type="number" id="fc" class="form-control mb-2" placeholder="FC (lpm)">
-            </div>
-        </div>
-
-        <h5>Historia Clínica</h5>
-        <textarea id="motivoConsulta" class="form-control mb-2" placeholder="Motivo de consulta" rows="2"></textarea>
-        <textarea id="antecedentes" class="form-control mb-2" placeholder="Antecedentes personales/familiares" rows="2"></textarea>
-        <textarea id="diagnostico" class="form-control mb-2" placeholder="Diagnóstico" rows="2"></textarea>
-        <textarea id="tratamiento" class="form-control mb-2" placeholder="Tratamiento / Recomendaciones" rows="3"></textarea>
-
-        <button onclick="guardarHistoriaClinica()" class="btn btn-guardar w-100 mt-3">💾 Guardar Historia Clínica</button>
-    </div>
-
-    <!-- Lista de Pacientes -->
-    <div class="form-container">
-        <h4 class="brand-title">📊 Pacientes Registrados - OBSTNUT</h4>
-        <div id="listaPacientes" class="list-group">
-            <div class="text-center">Cargando pacientes...</div>
-        </div>
-    </div>
+    <h2 class="text-center">🎉 ¡Bienvenida a OBSTNUT!</h2>
 </div>
 
 <script>
     // ⚠️ ⚠️ ⚠️ PEGA AQUÍ TU CONFIGURACIÓN DE FIREBASE ⚠️ ⚠️ ⚠️
-    // Ve a Firebase Console > Project Settings > Tú app web > Copia el objeto firebaseConfig
     const firebaseConfig = {
         apiKey: "PEGAAQUI-TU-API-KEY",
         authDomain: "obstnut-app.firebaseapp.com",
@@ -115,10 +50,29 @@
         appId: "PEGAAQUI-TU-APP-ID"
     };
 
-    // Inicializar Firebase
-    firebase.initializeApp(firebaseConfig);
+    // Función para mostrar logs en pantalla
+    function log(msg) {
+        const consola = document.getElementById('debug-console');
+        consola.innerText += `\n> ${msg}`;
+        console.log(msg);
+    }
+
+    log("🚀 Iniciando OBSTNUT...");
+
+    try {
+        firebase.initializeApp(firebaseConfig);
+        log("✅ Firebase inicializado correctamente");
+    } catch (error) {
+        log(`❌ Error al inicializar Firebase: ${error.message}`);
+    }
+
     const auth = firebase.auth();
     const db = firebase.firestore();
+
+    function showMessage(msg) {
+        document.getElementById('auth-message').innerText = msg;
+        setTimeout(() => document.getElementById('auth-message').innerText = '', 6000);
+    }
 
     function showAuth() {
         document.getElementById('auth-section').classList.remove('hidden');
@@ -128,45 +82,50 @@
     function showApp() {
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('main-app').classList.remove('hidden');
-        cargarPacientes();
     }
 
     function register() {
+        log("📝 Intentando registrar usuario...");
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
         if (!email || !password || password.length < 6) {
             showMessage("⚠️ Email y contraseña (mín. 6 caracteres) son obligatorios.");
+            log("❌ Validación fallida: campos incompletos");
             return;
         }
 
         auth.createUserWithEmailAndPassword(email, password)
             .then(() => {
+                log("✅ Usuario creado con éxito");
                 showMessage("✅ ¡Cuenta creada! Bienvenida a OBSTNUT.");
                 showApp();
             })
             .catch(error => {
-                console.error("Error registro:", error);
+                log(`❌ Error en registro: ${error.code} - ${error.message}`);
                 showMessage("❌ Error: " + error.message);
             });
     }
 
     function login() {
+        log("🔑 Intentando iniciar sesión...");
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
         if (!email || !password) {
             showMessage("⚠️ Email y contraseña son obligatorios.");
+            log("❌ Validación fallida: campos vacíos");
             return;
         }
 
         auth.signInWithEmailAndPassword(email, password)
             .then(() => {
+                log("✅ Login exitoso");
                 showMessage("✅ ¡Bienvenida a OBSTNUT!");
                 showApp();
             })
             .catch(error => {
-                console.error("Error login:", error);
+                log(`❌ Error en login: ${error.code} - ${error.message}`);
                 showMessage("❌ Error: " + error.message);
             });
     }
@@ -176,188 +135,18 @@
         showAuth();
     }
 
-    function registrarPaciente() {
-        const paciente = {
-            nombre: document.getElementById('nombrePaciente').value.trim(),
-            telefono: document.getElementById('telefonoPaciente').value.trim(),
-            tipoConsulta: document.getElementById('tipoConsulta').value,
-            fechaNacimiento: document.getElementById('fechaNacimiento').value,
-            userId: auth.currentUser.uid,
-            fechaRegistro: new Date()
-        };
-
-        if (!paciente.nombre || !paciente.telefono) {
-            showMessage("⚠️ Nombre y teléfono son obligatorios.");
-            return;
-        }
-
-        db.collection("pacientes").add(paciente)
-            .then(() => {
-                showMessage("✅ Paciente registrado en OBSTNUT.");
-                cargarPacientes();
-                limpiarFormularioPaciente();
-            })
-            .catch(error => {
-                console.error("Error guardando paciente:", error);
-                showMessage("❌ Error al registrar paciente.");
-            });
-    }
-
-    function cargarPacientes() {
-        const listaSelect = document.getElementById('listaPacientesAtencion');
-        const listaDiv = document.getElementById('listaPacientes');
-
-        listaSelect.innerHTML = '<option value="">Selecciona un paciente</option>';
-        listaDiv.innerHTML = '<div class="text-center">Cargando...</div>';
-
-        db.collection("pacientes").where("userId", "==", auth.currentUser.uid)
-            .orderBy("fechaRegistro", "desc")
-            .onSnapshot(snapshot => {
-                listaSelect.innerHTML = '<option value="">Selecciona un paciente</option>';
-                listaDiv.innerHTML = '';
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const id = doc.id;
-
-                    const option = document.createElement('option');
-                    option.value = id;
-                    option.textContent = data.nombre;
-                    listaSelect.appendChild(option);
-
-                    const card = document.createElement('div');
-                    card.className = 'card card-paciente p-3';
-                    card.innerHTML = `
-                        <h5>${data.nombre} <small class="text-muted">(${data.tipoConsulta})</small></h5>
-                        <p>📱 ${data.telefono} | 🎂 ${data.fechaNacimiento || 'No especificada'}</p>
-                        <button onclick="verHistorial('${id}')" class="btn btn-sm btn-outline-primary">Ver Historial</button>
-                        <hr>
-                    `;
-                    listaDiv.appendChild(card);
-                });
-            });
-    }
-
-    function guardarHistoriaClinica() {
-        const pacienteId = document.getElementById('listaPacientesAtencion').value;
-        if (!pacienteId) {
-            showMessage("⚠️ Selecciona un paciente primero.");
-            return;
-        }
-
-        const historia = {
-            pacienteId: pacienteId,
-            peso: document.getElementById('peso').value,
-            talla: document.getElementById('talla').value,
-            pa: document.getElementById('pa').value,
-            fc: document.getElementById('fc').value,
-            motivoConsulta: document.getElementById('motivoConsulta').value,
-            antecedentes: document.getElementById('antecedentes').value,
-            diagnostico: document.getElementById('diagnostico').value,
-            tratamiento: document.getElementById('tratamiento').value,
-            userId: auth.currentUser.uid,
-            fechaAtencion: new Date()
-        };
-
-        db.collection("historias_clinicas").add(historia)
-            .then(() => {
-                showMessage("✅ Historia clínica guardada en OBSTNUT.");
-                limpiarFormularioHistoria();
-            })
-            .catch(error => {
-                console.error("Error guardando historia:", error);
-                showMessage("❌ Error al guardar historia clínica.");
-            });
-    }
-
-    function verHistorial(pacienteId) {
-        const modal = document.createElement('div');
-        modal.className = 'modal fade show';
-        modal.style.display = 'block';
-        modal.innerHTML = `
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">📋 Historial Clínico - OBSTNUT</h5>
-                        <button type="button" class="btn-close" onclick="cerrarModal()"></button>
-                    </div>
-                    <div class="modal-body" id="modal-body">
-                        <p>Cargando historial...</p>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-
-        db.collection("pacientes").doc(pacienteId).get().then(pacienteDoc => {
-            const paciente = pacienteDoc.data();
-            let html = `<h5>👩‍⚕️ ${paciente.nombre} - ${paciente.tipoConsulta}</h5>`;
-            html += `<p>📱 ${paciente.telefono} | 🎂 ${paciente.fechaNacimiento || 'No especificada'}</p><hr>`;
-
-            db.collection("historias_clinicas").where("pacienteId", "==", pacienteId)
-                .orderBy("fechaAtencion", "desc")
-                .get().then(snapshot => {
-                    if (snapshot.empty) {
-                        html += "<p class='text-muted'>📭 No hay historial clínico aún.</p>";
-                    } else {
-                        snapshot.forEach(doc => {
-                            const hc = doc.data();
-                            const fecha = hc.fechaAtencion.toDate().toLocaleString();
-                            html += `
-                                <div class="mb-4 p-3 border rounded bg-light">
-                                    <small class="text-muted">📅 Atendido el: ${fecha}</small>
-                                    <p><strong>⚖️ Peso:</strong> ${hc.peso || '-'} kg | <strong>📏 Talla:</strong> ${hc.talla || '-'} cm</p>
-                                    <p><strong>💓 PA:</strong> ${hc.pa || '-'} | <strong>❤️ FC:</strong> ${hc.fc || '-'}</p>
-                                    <p><strong>📝 Motivo:</strong> ${hc.motivoConsulta || '-'}</p>
-                                    <p><strong>🧬 Antecedentes:</strong> ${hc.antecedentes || '-'}</p>
-                                    <p><strong>🩺 Diagnóstico:</strong> ${hc.diagnostico || '-'}</p>
-                                    <p><strong>💊 Tratamiento:</strong> ${hc.tratamiento || '-'}</p>
-                                </div>
-                            `;
-                        });
-                    }
-                    document.getElementById('modal-body').innerHTML = html;
-                });
-    }
-
-    function cerrarModal() {
-        const modal = document.querySelector('.modal');
-        if (modal) modal.remove();
-    }
-
-    function limpiarFormularioPaciente() {
-        document.getElementById('nombrePaciente').value = '';
-        document.getElementById('telefonoPaciente').value = '';
-        document.getElementById('tipoConsulta').value = '';
-        document.getElementById('fechaNacimiento').value = '';
-    }
-
-    function limpiarFormularioHistoria() {
-        document.getElementById('peso').value = '';
-        document.getElementById('talla').value = '';
-        document.getElementById('pa').value = '';
-        document.getElementById('fc').value = '';
-        document.getElementById('motivoConsulta').value = '';
-        document.getElementById('antecedentes').value = '';
-        document.getElementById('diagnostico').value = '';
-        document.getElementById('tratamiento').value = '';
-    }
-
-    function showMessage(msg) {
-        const div = document.getElementById('auth-message');
-        div.innerText = msg;
-        setTimeout(() => div.innerText = '', 6000);
-    }
-
     auth.onAuthStateChanged(user => {
         if (user) {
+            log(`✅ Usuario autenticado: ${user.email}`);
             showApp();
         } else {
+            log("ℹ️ Ningún usuario autenticado");
             showAuth();
         }
     });
 
     showAuth();
+    log("🏁 OBSTNUT listo para usar");
 </script>
 
 </body>
